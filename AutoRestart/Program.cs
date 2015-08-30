@@ -19,6 +19,11 @@ namespace AutoRestart
 
         static void Main(string[] args)
         {
+            if (args.Length < 2)
+            {
+                Console.WriteLine("Usage: AutoRestart.exe <path> <executable>");
+            }
+
             extensions = ConfigurationManager.AppSettings["extensions"].Split('|');
 
             watcher.Path = args[0];
