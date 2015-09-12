@@ -22,6 +22,7 @@ namespace AutoRestart
             if (args.Length < 2)
             {
                 Console.WriteLine("Usage: AutoRestart.exe <path> <executable>");
+                return;
             }
 
             extensions = ConfigurationManager.AppSettings["extensions"].Split('|');
