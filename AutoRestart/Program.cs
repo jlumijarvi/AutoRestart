@@ -38,6 +38,8 @@ namespace AutoRestart
             watcher.Deleted += new FileSystemEventHandler(OnChanged);
             watcher.Renamed += new RenamedEventHandler(OnRenamed);
 
+            DoBuild(true);
+
             watcher.EnableRaisingEvents = true;
 
             startinfo = new ProcessStartInfo()
@@ -68,7 +70,7 @@ namespace AutoRestart
 
         static void Restart()
         {
-            if (process.HasExited && !buildFailed)
+            if (process != null && (process.HasExited && !buildFailed))
                 return;
 
             Console.WriteLine("Changes detected");
@@ -81,17 +83,9 @@ namespace AutoRestart
 
             Console.WriteLine(startinfo.FileName + " has been exited");
 
-            var info = new ProcessStartInfo()
-            {
-                FileName = "msbuild",
-                UseShellExecute = false
-            };
-
             watcher.EnableRaisingEvents = false;
-            var p = Process.Start(info);
-            p.WaitForExit(30000);
 
-            buildFailed = p.ExitCode != 0;
+            DoBuild();
 
             if (!buildFailed)
             {
@@ -100,6 +94,23 @@ namespace AutoRestart
             }
 
             watcher.EnableRaisingEvents = true;
+        }
+
+        static void DoBuild(bool rebuild = false)
+        {
+            var info = new ProcessStartInfo()
+            {
+                FileName = "msbuild",
+                Arguments = (rebuild ? "/t:rebuild" : ""),
+                UseShellExecute = false
+            };
+            Console.WriteLine(info.FileName);
+
+            watcher.EnableRaisingEvents = false;
+            var p = Process.Start(info);
+            p.WaitForExit(int.Parse(ConfigurationManager.AppSettings["timeout"]) * 1000);
+
+            buildFailed = p.ExitCode != 0;
         }
     }
 }
